@@ -1,4 +1,4 @@
-Aplikasi Kasir Restoran - Proyek RPL Semester Ganjil
+<h1>Aplikasi Kasir Restoran - Proyek RPL Semester Ganjil</h1>
 Aplikasi ini dikembangkan sebagai bagian dari proyek semester ganjil pada mata pelajaran Rekayasa Perangkat Lunak (RPL). Tujuan dari aplikasi ini adalah untuk mempermudah proses transaksi di sebuah restoran melalui sistem kasir berbasis web.
 
 Aplikasi ini dibangun menggunakan framework PHP (seperti CodeIgniter atau Laravel) dan menggunakan database MySQL sebagai penyimpanan data.
