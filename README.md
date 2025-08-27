@@ -3,14 +3,14 @@
 Aplikasi ini dikembangkan sebagai bagian dari proyek semester ganjil pada mata pelajaran **Rekayasa Perangkat Lunak (RPL)**.  
 🎯 Tujuan dari aplikasi ini adalah untuk mempermudah proses transaksi di sebuah restoran melalui sistem kasir berbasis web.  
 
-🛠️ Aplikasi ini dibangun menggunakan **PHP Framework** (CodeIgniter / Laravel) dan **MySQL** sebagai penyimpanan data.  
+🛠️ Aplikasi ini dibangun menggunakan **PHP Native** dan **MySQL** sebagai penyimpanan data.  
 
 ---
 
 ## ✨ Fitur Utama Aplikasi
 
 ### 👨‍💼 Untuk Admin / Manajer
-- 👤 Pengelolaan data pengguna (menambahkan & mengelola akun kasir)  
+- 👤 Pengelolaan data pengguna (menambahkan & mengelola akun kasi serta kitchen)  
 - 📋 Pengelolaan menu restoran (tambah/ubah/hapus makanan & minuman)  
 - 📊 Melihat laporan penjualan  
 
