@@ -10,7 +10,7 @@ Aplikasi ini dikembangkan sebagai bagian dari proyek semester ganjil pada mata p
 ## ✨ Fitur Utama Aplikasi
 
 ### 👨‍💼 Untuk Admin / Manajer
-- 👤 Pengelolaan data pengguna (menambahkan & mengelola akun kasi serta kitchen)  
+- 👤 Pengelolaan data pengguna (menambahkan & mengelola akun kasir serta kitchen)  
 - 📋 Pengelolaan menu restoran (tambah/ubah/hapus makanan & minuman)  
 - 📊 Melihat laporan penjualan  
 
