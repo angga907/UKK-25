@@ -1,19 +1,27 @@
 <h1>Aplikasi Kasir Restoran - Proyek RPL Semester Ganjil</h1>
-Aplikasi ini dikembangkan sebagai bagian dari proyek semester ganjil pada mata pelajaran Rekayasa Perangkat Lunak (RPL). Tujuan dari aplikasi ini adalah untuk mempermudah proses transaksi di sebuah restoran melalui sistem kasir berbasis web.
 
-Aplikasi ini dibangun menggunakan framework PHP (seperti CodeIgniter atau Laravel) dan menggunakan database MySQL sebagai penyimpanan data.
+Aplikasi ini dikembangkan sebagai bagian dari proyek semester ganjil pada mata pelajaran Rekayasa Perangkat Lunak (RPL).  
+Tujuan dari aplikasi ini adalah untuk mempermudah proses transaksi di sebuah restoran melalui sistem kasir berbasis web.  
 
-Fitur utama dari aplikasi ini meliputi:
+Aplikasi ini dibangun menggunakan framework **PHP** (bisa menggunakan CodeIgniter atau Laravel) dan menggunakan **MySQL** sebagai penyimpanan data.  
 
-Pengelolaan data pengguna, di mana admin dapat menambahkan dan mengelola akun kasir serta user lainnya.
+### Fitur utama dari aplikasi ini meliputi:
 
-Pengelolaan menu restoran, termasuk penambahan, pengubahan, dan penghapusan data makanan atau minuman.
+**Untuk Admin / Manajer:**
+- Pengelolaan data pengguna (menambahkan & mengelola akun kasir)  
+- Pengelolaan menu restoran (tambah/ubah/hapus makanan & minuman)  
+- Melihat laporan penjualan  
 
-Proses transaksi kasir, di mana kasir dapat mencatat pesanan pelanggan, menghitung total pembelian, dan mencetak struk pembayaran.
+**Untuk Kasir:**
+- Mencatat pesanan pelanggan  
+- Menghitung total pembelian  
+- Mencetak struk pembayaran  
+- Melihat riwayat transaksi  
 
-Pencatatan data pesanan secara rinci, termasuk item menu yang dipesan dan jumlahnya.
+**Untuk Dapur (Kitchen):**
+- Melihat daftar pesanan yang masuk  
+- Mengupdate status pesanan (diproses / selesai)  
 
-Kemungkinan penambahan fitur laporan penjualan untuk membantu pemilik restoran dalam melihat rekap transaksi.
-    
-Aplikasi ini diharapkan dapat menjadi solusi sederhana namun efektif dalam digitalisasi proses kasir di lingkungan restoran kecil hingga menengah, sekaligus menjadi sarana pembelajaran dalam pengembangan aplikasi web berbasis framework.
+---
 
+Aplikasi ini diharapkan dapat menjadi solusi sederhana namun efektif dalam **digitalisasi proses kasir di restoran kecil hingga menengah**, sekaligus menjadi sarana pembelajaran dalam pengembangan aplikasi web berbasis framework.
