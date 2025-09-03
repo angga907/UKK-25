@@ -33,15 +33,22 @@ Aplikasi ini diharapkan dapat menjadi solusi sederhana namun efektif dalam **dig
 
 Berikut adalah tampilan antarmuka aplikasi kasir restoran yang telah dikembangkan:
 
-### 💰 Halaman Kasir
-Halaman kasir digunakan untuk mencatat pesanan pelanggan, menghitung total pembayaran, serta mencetak struk transaksi.
-![UI Kasir](./assets/ui-kasir.png)
+## 🖼️ Desain UI
+
+| Halaman Index Utama | Halaman Login |
+|---------------------|---------------|
+| <img src="./ui/Halaman Index Utama.png" width="300"/> | <img src="./ui/Halaman Login.png" width="300"/> |
+
+| Halaman Home | Halaman Home Pembayaran |
+|--------------|-------------------------|
+| <img src="./ui/Halaman Home.png" width="300"/> | <img src="./ui/Halaman Home Pembayaran.png" width="300"/> |
+
 
 ---
 
-## 🔄 Diagram / Flowchart Sistem
+## 🔄 Diagram
 
-Untuk memperjelas alur kerja aplikasi, berikut adalah flowchart sistem kasir restoran:
+Untuk memperjelas alur kerja aplikasi, berikut adalah diagram kasir restoran:
 
 ### 📌 Activity Diagram 
 <img src="./diagram/actvity.png" alt="Activity Diagram" width="500"/>
@@ -52,4 +59,17 @@ Untuk memperjelas alur kerja aplikasi, berikut adalah flowchart sistem kasir res
 ### 📌 Sequence Diagram
 <img src="./diagram/sequence.png" alt="Sequence Diagram" width="500"/>
 
+### 📌 ERD/Database Diagram
+<img src="./db/project.png" alt="home" width="500"/>
 
+## 🔄 Flowchart Sistem
+
+Berikut adalah flowchart sistem aplikasi **KasirKita** untuk masing-masing peran pengguna:
+
+| Flowchart Kasir | Flowchart Manajer |
+|-----------------|-------------------|
+| <img src="./flowcart/kasir.drawio.png" width="300"/> | <img src="./flowcart/manajer.drawio.png" width="300"/> |
+
+| Flowchart Kitchen |
+|-------------------|
+| <img src="./flowcart/kitchen.drawio.png" width="300"/> |
