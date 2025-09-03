@@ -43,16 +43,13 @@ Halaman kasir digunakan untuk mencatat pesanan pelanggan, menghitung total pemba
 
 Untuk memperjelas alur kerja aplikasi, berikut adalah flowchart sistem kasir restoran:
 
-### 📌 activity
-berikut adalah diagram activity dari aplikasi KasirKita
-![diagram activty] (./diagram/actvity.png)
+### 📌 Activity Diagram 
+<img src="./diagram/actvity.png" alt="Activity Diagram" width="500"/>
 
+### 📌 Use Case Diagram
+<img src="./diagram/usecase.png" alt="Use Case Diagram" width="500"/>
 
-### 📌 Alur Transaksi
-Setelah pesanan dibuat, kasir menghitung total pembayaran → menerima uang → mencetak struk → menyimpan data ke database.
-![Flowchart Transaksi](./assets/flowchart-transaksi.png)
+### 📌 Sequence Diagram
+<img src="./diagram/sequence.png" alt="Sequence Diagram" width="500"/>
 
-### 📌 Alur Pengelolaan Admin
-Admin/manajer dapat mengelola data pengguna, menu, serta melihat laporan penjualan secara langsung.
-![Flowchart Admin](./assets/flowchart-admin.png)
 
