@@ -33,8 +33,6 @@ Aplikasi ini diharapkan dapat menjadi solusi sederhana namun efektif dalam **dig
 
 Berikut adalah tampilan antarmuka aplikasi kasir restoran yang telah dikembangkan:
 
-## 🖼️ Desain UI
-
 | Halaman Index Utama | Halaman Login |
 |---------------------|---------------|
 | <img src="./ui/Halaman Index Utama.png" width="300"/> | <img src="./ui/Halaman Login.png" width="300"/> |
