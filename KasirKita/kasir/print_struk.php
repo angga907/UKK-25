@@ -10,8 +10,25 @@ $hasItems = false;
 $items = [];
 $check = @mysqli_query($koneksi, "SHOW TABLES LIKE 'order_items'");
 if ($check && mysqli_num_rows($check) > 0) {
-	$hasItems = true;
-	$items = mysqli_query($koneksi, "SELECT * FROM order_items WHERE order_id=$orderId");
+	// Check if order_id column exists
+	$hasOrderId = false;
+	$orderItemsCols = @mysqli_query($koneksi, "SHOW COLUMNS FROM order_items");
+	if ($orderItemsCols) {
+		while ($col = mysqli_fetch_assoc($orderItemsCols)) {
+			if ($col['Field'] === 'order_id') {
+				$hasOrderId = true;
+				break;
+			}
+		}
+	}
+	
+	if ($hasOrderId) {
+		$hasItems = true;
+		$items = mysqli_query($koneksi, "SELECT * FROM order_items WHERE order_id=$orderId");
+	} else {
+		// If no order_id column, try to get items by other means or show basic order info
+		$hasItems = false;
+	}
 }
 
 function rupiah($n){ return 'Rp ' . number_format((int)$n, 0, ',', '.'); }
@@ -74,6 +91,16 @@ function rupiah($n){ return 'Rp ' . number_format((int)$n, 0, ',', '.'); }
 			<strong>Total</strong>
 			<strong><?php echo rupiah($order['total']); ?></strong>
 		</div>
+		<?php if (isset($order['paid_amount']) && $order['paid_amount'] > 0): ?>
+		<div class="d-flex justify-content-between">
+			<div>Uang Diterima</div>
+			<div><?php echo rupiah($order['paid_amount']); ?></div>
+		</div>
+		<div class="d-flex justify-content-between">
+			<strong>Kembalian</strong>
+			<strong><?php echo rupiah($order['paid_amount'] - $order['total']); ?></strong>
+		</div>
+		<?php endif; ?>
 		<hr>
 		<div class="text-center">
 			<small>Terima kasih telah berkunjung!</small>

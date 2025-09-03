@@ -23,20 +23,51 @@ $hasCustomer = false;
 $cols = @mysqli_query($koneksi, "SHOW COLUMNS FROM orders LIKE 'customer_name'");
 if ($cols && mysqli_num_rows($cols) > 0) { $hasCustomer = true; }
 
+// Debug: Check what columns actually exist in orders table
+$debugCols = @mysqli_query($koneksi, "SHOW COLUMNS FROM orders");
+$availableCols = [];
+if ($debugCols) {
+    while ($col = mysqli_fetch_assoc($debugCols)) {
+        $availableCols[] = $col['Field'];
+    }
+}
+
 // Filter status
-$filter = $_GET['status'] ?? 'active'; // active = pending + dimasak
-$where = "status IN ('pending','dimasak')";
+$filter = $_GET['status'] ?? 'active'; // active = all orders
+$where = "1=1"; // Show all orders by default
 if ($filter === 'pending') $where = "status='pending'";
 if ($filter === 'dimasak') $where = "status='dimasak'";
 if ($filter === 'selesai') $where = "status='selesai'";
 
-$select = "id, nomor_meja, total, status, created_at" . ($hasCustomer ? ", customer_name" : "");
-$orders = mysqli_query($koneksi, "SELECT $select FROM orders WHERE $where ORDER BY created_at ASC");
+// Build SELECT query - always include customer_name
+$select = "id, nomor_meja, total, status, created_at, customer_name";
+$query = "SELECT $select FROM orders WHERE $where ORDER BY created_at DESC";
 
-// Detect order_items table
+$orders = mysqli_query($koneksi, $query);
+
+// Get counts for each status
+$countAll = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM orders"))['total'];
+$countPending = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM orders WHERE status='pending'"))['total'];
+$countDimasak = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM orders WHERE status='dimasak'"))['total'];
+$countSelesai = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT COUNT(*) as total FROM orders WHERE status='selesai'"))['total'];
+
+// Detect order_items table and its columns
 $hasItems = false;
+$hasOrderIdInItems = false;
 $itCheck = @mysqli_query($koneksi, "SHOW TABLES LIKE 'order_items'");
-if ($itCheck && mysqli_num_rows($itCheck) > 0) { $hasItems = true; }
+if ($itCheck && mysqli_num_rows($itCheck) > 0) { 
+    $hasItems = true;
+    // Check if order_id column exists in order_items
+    $itemCols = @mysqli_query($koneksi, "SHOW COLUMNS FROM order_items");
+    if ($itemCols) {
+        while ($col = mysqli_fetch_assoc($itemCols)) {
+            if ($col['Field'] === 'order_id') {
+                $hasOrderIdInItems = true;
+                break;
+            }
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -52,15 +83,27 @@ if ($itCheck && mysqli_num_rows($itCheck) > 0) { $hasItems = true; }
 			<h3 class="mb-0"><i class="fas fa-utensils me-2"></i>Kitchen</h3>
 			<div class="d-flex gap-2">
 				<button class="btn btn-outline-secondary btn-sm" onclick="location.reload()">Refresh</button>
+				<a href="?debug=1" class="btn btn-outline-info btn-sm">Debug</a>
 				<a href="../logout.php" class="btn btn-outline-danger btn-sm">Logout</a>
 			</div>
 		</div>
 
+		<?php if(isset($_GET['debug'])): ?>
+		<div class="alert alert-info">
+			<strong>Debug Info:</strong><br>
+			Available columns in orders: <?php echo implode(', ', $availableCols); ?><br>
+			Has customer_name: <?php echo $hasCustomer ? 'Yes' : 'No'; ?><br>
+			Query method: Direct customer_name column (no JOIN)<br>
+			Has order_items table: <?php echo $hasItems ? 'Yes' : 'No'; ?><br>
+			Has order_id in order_items: <?php echo $hasOrderIdInItems ? 'Yes' : 'No'; ?>
+		</div>
+		<?php endif; ?>
+
 		<ul class="nav nav-pills mb-3">
-			<li class="nav-item"><a class="nav-link <?php echo $filter==='active'?'active':''; ?>" href="?status=active">Aktif</a></li>
-			<li class="nav-item"><a class="nav-link <?php echo $filter==='pending'?'active':''; ?>" href="?status=pending">Pending</a></li>
-			<li class="nav-item"><a class="nav-link <?php echo $filter==='dimasak'?'active':''; ?>" href="?status=dimasak">Dimasak</a></li>
-			<li class="nav-item"><a class="nav-link <?php echo $filter==='selesai'?'active':''; ?>" href="?status=selesai">Selesai</a></li>
+			<li class="nav-item"><a class="nav-link <?php echo $filter==='active'?'active':''; ?>" href="?status=active">Semua <span class="badge bg-secondary ms-1"><?php echo $countAll; ?></span></a></li>
+			<li class="nav-item"><a class="nav-link <?php echo $filter==='pending'?'active':''; ?>" href="?status=pending">Pending <span class="badge bg-warning text-dark ms-1"><?php echo $countPending; ?></span></a></li>
+			<li class="nav-item"><a class="nav-link <?php echo $filter==='dimasak'?'active':''; ?>" href="?status=dimasak">Dimasak <span class="badge bg-info text-dark ms-1"><?php echo $countDimasak; ?></span></a></li>
+			<li class="nav-item"><a class="nav-link <?php echo $filter==='selesai'?'active':''; ?>" href="?status=selesai">Selesai <span class="badge bg-success ms-1"><?php echo $countSelesai; ?></span></a></li>
 		</ul>
 
 		<div class="card shadow-sm">
@@ -75,6 +118,7 @@ if ($itCheck && mysqli_num_rows($itCheck) > 0) { $hasItems = true; }
 								<th>Pelanggan</th>
 								<th>Total</th>
 								<th>Status</th>
+								<th>Waktu</th>
 								<th>Aksi</th>
 							</tr>
 						</thead>
@@ -83,9 +127,16 @@ if ($itCheck && mysqli_num_rows($itCheck) > 0) { $hasItems = true; }
 							<tr>
 								<td>#<?php echo $o['id']; ?></td>
 								<td>Meja <?php echo (int)$o['nomor_meja']; ?></td>
-								<td><?php echo $hasCustomer ? htmlspecialchars($o['customer_name'] ?? '') : ''; ?></td>
+								<td><?php 
+									if (isset($o['customer_name']) && !empty($o['customer_name'])) {
+										echo htmlspecialchars($o['customer_name']);
+									} else {
+										echo '<span class="text-muted">Tamu</span>';
+									}
+								?></td>
 								<td><strong>Rp <?php echo number_format($o['total'],0,',','.'); ?></strong></td>
 								<td><span class="badge bg-<?php echo $o['status']==='pending' ? 'warning' : ($o['status']==='dimasak'?'info':'success'); ?> text-dark"><?php echo ucfirst($o['status']); ?></span></td>
+								<td><small class="text-muted"><?php echo date('H:i', strtotime($o['created_at'])); ?></small></td>
 								<td>
 									<?php if($o['status']==='pending'): ?>
 									<form method="POST" class="d-inline">
@@ -100,17 +151,17 @@ if ($itCheck && mysqli_num_rows($itCheck) > 0) { $hasItems = true; }
 										<button class="btn btn-sm btn-success">Selesai</button>
 									</form>
 									<?php endif; ?>
-									<?php if($hasItems): ?>
+									<?php if($hasItems && $hasOrderIdInItems): ?>
 									<button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#items-<?php echo $o['id']; ?>">Detail</button>
 									<?php endif; ?>
 								</td>
 							</tr>
-							<?php if($hasItems): ?>
+							<?php if($hasItems && $hasOrderIdInItems): ?>
 							<tr class="collapse" id="items-<?php echo $o['id']; ?>">
-								<td colspan="6">
+								<td colspan="7">
 									<?php 
 									$its = mysqli_query($koneksi, "SELECT name, qty, price FROM order_items WHERE order_id=".$o['id']);
-									if(mysqli_num_rows($its)>0): ?>
+									if($its && mysqli_num_rows($its)>0): ?>
 									<table class="table table-sm mb-0">
 										<thead><tr><th>Item</th><th class="text-center">Qty</th><th class="text-end">Subtotal</th></tr></thead>
 										<tbody>
@@ -127,7 +178,7 @@ if ($itCheck && mysqli_num_rows($itCheck) > 0) { $hasItems = true; }
 							</tr>
 							<?php endif; ?>
 							<?php endwhile; else: ?>
-							<tr><td colspan="6" class="text-center text-muted">Belum ada pesanan.</td></tr>
+							<tr><td colspan="7" class="text-center text-muted">Belum ada pesanan.</td></tr>
 							<?php endif; ?>
 						</tbody>
 					</table>

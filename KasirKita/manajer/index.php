@@ -577,7 +577,7 @@ $total_employees = $data_employees['total_employees'] ?? 0;
             
             .main-content {
                 margin-left: 0;
-                padding: 20px;
+            padding: 20px;
             }
             
             .content-grid {
@@ -601,25 +601,25 @@ $total_employees = $data_employees['total_employees'] ?? 0;
             
             <div class="nav-menu">
                 <div class="nav-item">
-                    <a href="index.php" class="nav-link active">
+                <a href="index.php" class="nav-link active">
                         <i class="fas fa-home"></i>
                         Dashboard
-                    </a>
+                </a>
                 </div>
                 <div class="nav-item">
-                    <a href="laporan.php" class="nav-link">
+                <a href="laporan.php" class="nav-link">
                         <i class="fas fa-chart-bar"></i>
                         Laporan Penjualan
-                    </a>
+                </a>
                 </div>
                 <div class="nav-item">
-                    <a href="pegawai.php" class="nav-link">
+                <a href="pegawai.php" class="nav-link">
                         <i class="fas fa-users"></i>
                         Data Pegawai
-                    </a>
+                </a>
                 </div>
                 <div class="nav-item">
-                    <a href="menu.php" class="nav-link">
+                <a href="menu.php" class="nav-link">
                         <i class="fas fa-utensils"></i>
                         Data Menu
                     </a>
@@ -631,13 +631,13 @@ $total_employees = $data_employees['total_employees'] ?? 0;
                     </a>
                 </div>
                 <div class="nav-item">
-                    <a href="../logout.php" class="nav-link text-danger">
+                <a href="../logout.php" class="nav-link text-danger">
                         <i class="fas fa-sign-out-alt"></i>
                         Logout
-                    </a>
+                </a>
                 </div>
             </div>
-        </div>
+    </div>
 
         <!-- Main Content -->
         <div class="main-content">
@@ -662,9 +662,9 @@ $total_employees = $data_employees['total_employees'] ?? 0;
                             <div class="user-status">
                                 <span class="status-dot online"></span>
                                 <small>Online</small>
-                            </div>
                         </div>
                     </div>
+                </div>
                     <div class="profile-dropdown">
                         <button class="btn btn-link dropdown-toggle" type="button" id="profileDropdown" data-bs-toggle="dropdown">
                             <i class="fas fa-chevron-down"></i>
@@ -675,9 +675,9 @@ $total_employees = $data_employees['total_employees'] ?? 0;
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="../logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                         </ul>
+                        </div>
                     </div>
                 </div>
-            </div>
 
             <!-- Statistics Cards -->
             <div class="stats-grid">
@@ -767,7 +767,7 @@ $total_employees = $data_employees['total_employees'] ?? 0;
                                         </div>
                                         <div class="order-table">
                                             Meja <?php echo $order['nomor_meja']; ?>
-                                        </div>
+                        </div>
                                     </div>
                                 </div>
                             <?php endwhile; ?>

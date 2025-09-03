@@ -7,9 +7,11 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'manajer') {
 
 include "../koneksi.php";
 
-// Detect optional 'status' column on menu table
+// Detect optional 'status' and 'stok' column on menu table
 $colCheck = @mysqli_query($koneksi, "SHOW COLUMNS FROM menu LIKE 'status'");
 $hasStatus = $colCheck && mysqli_num_rows($colCheck) > 0;
+$colStock = @mysqli_query($koneksi, "SHOW COLUMNS FROM menu LIKE 'stok'");
+$hasStock = $colStock && mysqli_num_rows($colStock) > 0;
 
 // Handle POST with redirect-after-POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -21,9 +23,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $harga = (int)($_POST['harga'] ?? 0);
         $deskripsi = mysqli_real_escape_string($koneksi, $_POST['deskripsi'] ?? '');
         $status = mysqli_real_escape_string($koneksi, $_POST['status'] ?? 'aktif');
+        $stok = (int)($_POST['stok'] ?? 0);
         if ($nama && $kategori && $harga > 0) {
-            if ($hasStatus) {
-                mysqli_query($koneksi, "INSERT INTO menu (nama_menu, kategori, harga, deskripsi, status) VALUES ('$nama', '$kategori', $harga, '$deskripsi', '$status')");
+            if ($hasStatus || $hasStock) {
+                $fields = ['nama_menu','kategori','harga','deskripsi'];
+                $values = ["'$nama'","'$kategori'",$harga,"'$deskripsi'"];
+                if ($hasStatus) { $fields[] = 'status'; $values[] = "'$status'"; }
+                if ($hasStock) { $fields[] = 'stok'; $values[] = $stok; }
+                mysqli_query($koneksi, "INSERT INTO menu (".implode(',',$fields).") VALUES (".implode(',',$values).")");
             } else {
                 mysqli_query($koneksi, "INSERT INTO menu (nama_menu, kategori, harga, deskripsi) VALUES ('$nama', '$kategori', $harga, '$deskripsi')");
             }
@@ -37,12 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $harga = (int)($_POST['harga'] ?? 0);
         $deskripsi = mysqli_real_escape_string($koneksi, $_POST['deskripsi'] ?? '');
         $status = mysqli_real_escape_string($koneksi, $_POST['status'] ?? 'aktif');
+        $stok = (int)($_POST['stok'] ?? 0);
         if ($id > 0) {
-            if ($hasStatus) {
-                mysqli_query($koneksi, "UPDATE menu SET nama_menu='$nama', kategori='$kategori', harga=$harga, deskripsi='$deskripsi', status='$status' WHERE id=$id");
-            } else {
-                mysqli_query($koneksi, "UPDATE menu SET nama_menu='$nama', kategori='$kategori', harga=$harga, deskripsi='$deskripsi' WHERE id=$id");
-            }
+            $sets = ["nama_menu='$nama'","kategori='$kategori'","harga=$harga","deskripsi='$deskripsi'"];
+            if ($hasStatus) { $sets[] = "status='$status'"; }
+            if ($hasStock) { $sets[] = "stok=$stok"; }
+            mysqli_query($koneksi, "UPDATE menu SET ".implode(',', $sets)." WHERE id=$id");
         }
     }
 
@@ -53,16 +60,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    if ($action === 'adjust_stock') {
+        $id = (int)($_POST['id'] ?? 0);
+        $adjustment = (int)($_POST['adjustment'] ?? 0);
+        if ($id > 0 && $hasStock) {
+            mysqli_query($koneksi, "UPDATE menu SET stok = GREATEST(0, stok + $adjustment) WHERE id=$id");
+        }
+    }
+
     header('Location: menu.php?success=1');
     exit;
 }
 
 // Fetch menu list depending on column availability
-if ($hasStatus) {
-    $menus = mysqli_query($koneksi, "SELECT id, nama_menu, kategori, harga, deskripsi, status FROM menu ORDER BY kategori, nama_menu");
-} else {
-    $menus = mysqli_query($koneksi, "SELECT id, nama_menu, kategori, harga, deskripsi FROM menu ORDER BY kategori, nama_menu");
-}
+$select = "id, nama_menu, kategori, harga, deskripsi";
+if ($hasStatus) { $select .= ", status"; }
+if ($hasStock) { $select .= ", stok"; }
+$menus = mysqli_query($koneksi, "SELECT $select FROM menu ORDER BY kategori, nama_menu");
 
 function is_active($page) { return basename($_SERVER['PHP_SELF']) === $page ? 'active' : ''; }
 ?>
@@ -141,6 +155,7 @@ function is_active($page) { return basename($_SERVER['PHP_SELF']) === $page ? 'a
 									<th>Nama Menu</th>
 									<th>Kategori</th>
 									<th>Harga</th>
+									<?php if ($hasStock): ?><th>Stok</th><?php endif; ?>
 									<?php if ($hasStatus): ?><th>Status</th><?php endif; ?>
 									<th style="width:140px;">Aksi</th>
 								</tr>
@@ -155,9 +170,32 @@ function is_active($page) { return basename($_SERVER['PHP_SELF']) === $page ? 'a
 									</td>
 									<td><span class="kategori-badge kategori-<?php echo $menu['kategori']; ?>"><?php echo ucfirst($menu['kategori']); ?></span></td>
 									<td><strong>Rp <?php echo number_format($menu['harga'],0,',','.'); ?></strong></td>
+									<?php if ($hasStock): ?>
+									<td>
+										<div class="d-flex align-items-center">
+											<span class="badge bg-<?php echo (int)($menu['stok'] ?? 0) > 10 ? 'success' : ((int)($menu['stok'] ?? 0) > 0 ? 'warning' : 'danger'); ?> me-2">
+												<?php echo (int)($menu['stok'] ?? 0); ?>
+											</span>
+											<div class="btn-group btn-group-sm">
+												<form method="POST" class="d-inline" onsubmit="return confirm('Tambah stok +1?')">
+													<input type="hidden" name="action" value="adjust_stock">
+													<input type="hidden" name="id" value="<?php echo $menu['id']; ?>">
+													<input type="hidden" name="adjustment" value="1">
+													<button class="btn btn-outline-success btn-sm" title="Tambah Stok"><i class="fas fa-plus"></i></button>
+												</form>
+												<form method="POST" class="d-inline" onsubmit="return confirm('Kurangi stok -1?')">
+													<input type="hidden" name="action" value="adjust_stock">
+													<input type="hidden" name="id" value="<?php echo $menu['id']; ?>">
+													<input type="hidden" name="adjustment" value="-1">
+													<button class="btn btn-outline-danger btn-sm" title="Kurangi Stok"><i class="fas fa-minus"></i></button>
+												</form>
+											</div>
+										</div>
+									</td>
+									<?php endif; ?>
 									<?php if ($hasStatus): ?><td><span class="status-badge status-<?php echo $menu['status']; ?>"><?php echo ucfirst($menu['status']); ?></span></td><?php endif; ?>
 									<td>
-										<button class="btn btn-sm btn-outline-primary me-2" onclick="openEdit(<?php echo $menu['id']; ?>,'<?php echo htmlspecialchars($menu['nama_menu'], ENT_QUOTES); ?>','<?php echo $menu['kategori']; ?>',<?php echo (int)$menu['harga']; ?>,'<?php echo htmlspecialchars($menu['deskripsi'] ?? '', ENT_QUOTES); ?>'<?php echo $hasStatus ? ",'" . $menu['status'] . "'" : ",''"; ?>)"><i class="fas fa-edit"></i></button>
+										<button class="btn btn-sm btn-outline-primary me-2" onclick="openEdit(<?php echo $menu['id']; ?>,'<?php echo htmlspecialchars($menu['nama_menu'], ENT_QUOTES); ?>','<?php echo $menu['kategori']; ?>',<?php echo (int)$menu['harga']; ?>,'<?php echo htmlspecialchars($menu['deskripsi'] ?? '', ENT_QUOTES); ?>'<?php echo $hasStatus ? ", '" . $menu['status'] . "'" : ",''"; ?><?php echo $hasStock ? ",".(int)($menu['stok'] ?? 0) : ",0"; ?>)"><i class="fas fa-edit"></i></button>
 										<form method="POST" class="d-inline" onsubmit="return confirm('Hapus menu ini?')">
 											<input type="hidden" name="action" value="delete">
 											<input type="hidden" name="id" value="<?php echo $menu['id']; ?>">
@@ -196,6 +234,9 @@ function is_active($page) { return basename($_SERVER['PHP_SELF']) === $page ? 'a
 						</div>
 						<div class="mb-3"><label class="form-label">Harga</label><input type="number" name="harga" class="form-control" required></div>
 						<div class="mb-3"><label class="form-label">Deskripsi</label><textarea name="deskripsi" class="form-control" rows="3"></textarea></div>
+						<?php if ($hasStock): ?>
+						<div class="mb-3"><label class="form-label">Stok</label><input type="number" name="stok" class="form-control" value="0" min="0"></div>
+						<?php endif; ?>
 						<?php if ($hasStatus): ?>
 						<div class="mb-2"><label class="form-label">Status</label>
 							<select name="status" class="form-control" required>
@@ -236,6 +277,9 @@ function is_active($page) { return basename($_SERVER['PHP_SELF']) === $page ? 'a
 						</div>
 						<div class="mb-3"><label class="form-label">Harga</label><input type="number" name="harga" id="edit-harga" class="form-control" required></div>
 						<div class="mb-3"><label class="form-label">Deskripsi</label><textarea name="deskripsi" id="edit-deskripsi" class="form-control" rows="3"></textarea></div>
+						<?php if ($hasStock): ?>
+						<div class="mb-3"><label class="form-label">Stok</label><input type="number" name="stok" id="edit-stok" class="form-control" min="0"></div>
+						<?php endif; ?>
 						<?php if ($hasStatus): ?>
 						<div class="mb-2"><label class="form-label">Status</label>
 							<select name="status" id="edit-status" class="form-control" required>
@@ -256,7 +300,7 @@ function is_active($page) { return basename($_SERVER['PHP_SELF']) === $page ? 'a
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 	<script>
-		function openEdit(id, nama, kategori, harga, deskripsi, status) {
+		function openEdit(id, nama, kategori, harga, deskripsi, status, stok) {
 			document.getElementById('edit-id').value = id;
 			document.getElementById('edit-nama').value = nama;
 			document.getElementById('edit-kategori').value = kategori;
@@ -264,6 +308,9 @@ function is_active($page) { return basename($_SERVER['PHP_SELF']) === $page ? 'a
 			document.getElementById('edit-deskripsi').value = deskripsi;
 			if (document.getElementById('edit-status')) {
 				document.getElementById('edit-status').value = status || 'aktif';
+			}
+			if (document.getElementById('edit-stok')) {
+				document.getElementById('edit-stok').value = stok || 0;
 			}
 			var modal = new bootstrap.Modal(document.getElementById('editMenuModal'));
 			modal.show();

@@ -1,8 +1,8 @@
 <?php
 session_start();
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'kasir') {
-	// header("Location: ../login.php?role=kasir");
-	// exit;
+	header("Location: ../login.php?role=kasir");
+	exit;
 }
 
 include "../koneksi.php";
@@ -43,7 +43,12 @@ $menus = mysqli_query($koneksi, "SELECT $selectFields FROM menu ORDER BY kategor
 	<div class="container-app container-fluid">
 		<div class="d-flex justify-content-between align-items-center mb-3">
 			<h3 class="mb-0"><i class="fas fa-cash-register me-2"></i>Kasir</h3>
-			<a href="../index.php" class="btn btn-outline-secondary"><i class="fas fa-home me-2"></i>Home</a>
+			<div class="d-flex gap-2">
+				<button class="btn btn-outline-info btn-sm" onclick="debugLog('Test button clicked'); alert('JavaScript berfungsi!');">
+					<i class="fas fa-bug me-1"></i>Test JS
+				</button>
+				<a href="../index.php" class="btn btn-outline-secondary"><i class="fas fa-home me-2"></i>Home</a>
+			</div>
 		</div>
 
 		<div class="row g-3">
@@ -67,7 +72,14 @@ $menus = mysqli_query($koneksi, "SELECT $selectFields FROM menu ORDER BY kategor
 								<small class="text-muted mb-2"><?php echo htmlspecialchars($m['deskripsi'] ?? ''); ?></small>
 								<div class="mt-auto d-flex justify-content-between align-items-center">
 									<strong>Rp <?php echo number_format($m['harga'],0,',','.'); ?></strong>
-									<button class="btn btn-sm btn-primary" <?php echo $disabled?'disabled':''; ?> onclick='addToCart(<?php echo json_encode(["id"=>$m['id'],"name"=>$m['nama_menu'],"price"=>(int)$m['harga'],"stok"=>$hasStock?(int)$m['stok']:null]); ?>)'><i class="fas fa-plus me-1"></i>Tambah</button>
+									<button class="btn btn-sm btn-primary add-to-cart-btn" 
+										<?php echo $disabled?'disabled':''; ?> 
+										data-id="<?php echo $m['id']; ?>"
+										data-name="<?php echo htmlspecialchars($m['nama_menu']); ?>"
+										data-price="<?php echo (int)$m['harga']; ?>"
+										data-stok="<?php echo $hasStock ? (int)$m['stok'] : ''; ?>">
+										<i class="fas fa-plus me-1"></i>Tambah
+									</button>
 								</div>
 							</div>
 						</div>
@@ -110,25 +122,38 @@ $menus = mysqli_query($koneksi, "SELECT $selectFields FROM menu ORDER BY kategor
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
-					<h5 class="modal-title">Pembayaran Tunai</h5>
+					<h5 class="modal-title"><i class="fas fa-money-bill-wave me-2"></i>Pembayaran Tunai</h5>
 					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 				</div>
 				<div class="modal-body">
 					<div class="mb-3">
-						<label class="form-label">Total</label>
+						<label class="form-label">Total Pembayaran</label>
 						<input type="text" id="modal-total" class="form-control" readonly>
 					</div>
 					<div class="mb-3">
 						<label class="form-label">Uang Diterima</label>
-						<input type="number" id="modal-paid" class="form-control" placeholder="Masukkan nominal uang">
+						<input type="number" id="modal-paid" class="form-control" placeholder="Masukkan nominal uang" min="0">
 					</div>
-					<div class="mb-1 text-end">
-						<strong>Kembalian: <span id="modal-change">Rp 0</span></strong>
+					<div class="mb-3">
+						<div class="alert alert-info">
+							<i class="fas fa-info-circle me-2"></i>
+							<strong>Kembalian: <span id="modal-change">Rp 0</span></strong>
+						</div>
+					</div>
+					<div class="mb-3">
+						<label class="form-label">Nomor Meja</label>
+						<input type="number" id="modal-table" class="form-control" placeholder="Nomor meja" min="1">
+					</div>
+					<div class="mb-3">
+						<label class="form-label">Nama Pelanggan</label>
+						<input type="text" id="modal-customer" class="form-control" placeholder="Nama pelanggan">
 					</div>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-					<button type="button" class="btn btn-success" onclick="confirmCash()">Konfirmasi</button>
+					<button type="button" class="btn btn-success" onclick="confirmCash()">
+						<i class="fas fa-check me-2"></i>Konfirmasi Pembayaran
+					</button>
 				</div>
 			</div>
 		</div>
@@ -136,15 +161,43 @@ $menus = mysqli_query($koneksi, "SELECT $selectFields FROM menu ORDER BY kategor
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 	<script>
+		// Global cart array
 		const cart = [];
-		function addToCart(item){
-			// Enforce stock
-			if(item.stok !== null && item.stok !== undefined){
-				const used = cart.find(i => i.id===item.id)?.qty || 0;
-				if(used >= item.stok){ alert('Stok tidak cukup'); return; }
+		
+		// Debug function
+		function debugLog(message) {
+			console.log('[Kasir Debug]:', message);
+		}
+		
+		// Add to cart function
+		function addToCart(item) {
+			debugLog('addToCart called with:', item);
+			
+			// Check if item is valid
+			if (!item || !item.id || !item.name || !item.price) {
+				alert('Data menu tidak valid!');
+				return;
 			}
+			
+			// Enforce stock
+			if (item.stok !== null && item.stok !== undefined) {
+				const used = cart.find(i => i.id === item.id)?.qty || 0;
+				if (used >= item.stok) { 
+					alert('Stok tidak cukup! Stok tersisa: ' + item.stok); 
+					return; 
+				}
+			}
+			
+			// Add or update item in cart
 			const existing = cart.find(i => i.id === item.id);
-			if(existing){ existing.qty += 1; } else { cart.push({...item, qty:1}); }
+			if (existing) { 
+				existing.qty += 1; 
+				debugLog('Updated existing item:', existing);
+			} else { 
+				cart.push({...item, qty: 1}); 
+				debugLog('Added new item to cart:', cart[cart.length - 1]);
+			}
+			
 			renderCart();
 		}
 		function changeQty(id, delta){
@@ -155,47 +208,207 @@ $menus = mysqli_query($koneksi, "SELECT $selectFields FROM menu ORDER BY kategor
 			if(it.stok !== null && it.stok !== undefined && newQty > it.stok){ alert('Stok tidak cukup'); return; }
 			it.qty = newQty; renderCart();
 		}
-		function renderCart(){
-			let html=''; let total=0;
-			cart.forEach(i=>{
-				total += i.price*i.qty;
+		function renderCart() {
+			debugLog('renderCart called, cart items:', cart);
+			
+			let html = ''; 
+			let total = 0;
+			
+			cart.forEach(i => {
+				total += i.price * i.qty;
 				html += `<div class="d-flex justify-content-between align-items-center mb-2">
 					<div>
 						<div class="fw-semibold">${i.name}</div>
-						<small class="text-muted">Rp ${i.price.toLocaleString('id-ID')}${i.stok!=null?` • Stok: ${i.stok - i.qty}`:''}</small>
+						<small class="text-muted">Rp ${i.price.toLocaleString('id-ID')}${i.stok != null ? ` • Stok: ${i.stok - i.qty}` : ''}</small>
 					</div>
 					<div class="d-flex align-items-center gap-2">
-						<button class="btn btn-sm btn-outline-secondary" onclick="changeQty(${i.id},-1)">-</button>
+						<button class="btn btn-sm btn-outline-secondary qty-btn" data-id="${i.id}" data-delta="-1">-</button>
 						<span>${i.qty}</span>
-						<button class="btn btn-sm btn-outline-secondary" onclick="changeQty(${i.id},1)">+</button>
+						<button class="btn btn-sm btn-outline-secondary qty-btn" data-id="${i.id}" data-delta="1">+</button>
 					</div>
-				</div>`
+				</div>`;
 			});
-			document.getElementById('cart-list').innerHTML = html || '<div class="text-muted">Keranjang kosong</div>';
-			document.getElementById('cart-total').innerText = 'Rp ' + total.toLocaleString('id-ID');
-			const modalTotal = document.getElementById('modal-total'); if(modalTotal){ modalTotal.value = 'Rp ' + total.toLocaleString('id-ID'); }
+			
+			// Update cart display
+			const cartListElement = document.getElementById('cart-list');
+			const cartTotalElement = document.getElementById('cart-total');
+			
+			if (cartListElement) {
+				cartListElement.innerHTML = html || '<div class="text-muted">Keranjang kosong</div>';
+			} else {
+				debugLog('ERROR: cart-list element not found!');
+			}
+			
+			if (cartTotalElement) {
+				cartTotalElement.innerText = 'Rp ' + total.toLocaleString('id-ID');
+			} else {
+				debugLog('ERROR: cart-total element not found!');
+			}
+			
+			// Update modal total
+			const modalTotal = document.getElementById('modal-total'); 
+			if (modalTotal) { 
+				modalTotal.value = 'Rp ' + total.toLocaleString('id-ID'); 
+			}
+			
+			// Setup paid input handler
 			const paidInput = document.getElementById('modal-paid');
-			if(paidInput){
+			if (paidInput) {
 				paidInput.oninput = () => {
-					const paid = parseInt(paidInput.value||0);
+					const paid = parseInt(paidInput.value || 0);
 					const change = Math.max(0, paid - total);
-					document.getElementById('modal-change').innerText = 'Rp ' + change.toLocaleString('id-ID');
+					const changeElement = document.getElementById('modal-change');
+					if (changeElement) {
+						changeElement.innerText = 'Rp ' + change.toLocaleString('id-ID');
+					}
 				};
 			}
+			
+			debugLog('Cart rendered successfully, total:', total);
 		}
+
+		// Initialize when DOM is loaded
+		document.addEventListener('DOMContentLoaded', function() {
+			debugLog('DOM loaded, initializing...');
+			
+			// Test if elements exist
+			const cartListElement = document.getElementById('cart-list');
+			const cartTotalElement = document.getElementById('cart-total');
+			
+			debugLog('Cart elements found:', {
+				cartList: !!cartListElement,
+				cartTotal: !!cartTotalElement
+			});
+			
+			// Initialize cart display
+			renderCart();
+			
+			// Event delegation for add to cart buttons
+			document.addEventListener('click', function(e) {
+				if (e.target.closest('.add-to-cart-btn')) {
+					e.preventDefault();
+					const btn = e.target.closest('.add-to-cart-btn');
+					
+					if (btn.disabled) {
+						alert('Menu tidak tersedia!');
+						return;
+					}
+					
+					const item = {
+						id: parseInt(btn.dataset.id),
+						name: btn.dataset.name,
+						price: parseInt(btn.dataset.price),
+						stok: btn.dataset.stok ? parseInt(btn.dataset.stok) : null
+					};
+					
+					debugLog('Add to cart clicked:', item);
+					addToCart(item);
+				}
+			});
+			
+			// Event delegation for quantity change buttons
+			document.addEventListener('click', function(e) {
+				if (e.target.closest('.qty-btn')) {
+					e.preventDefault();
+					const btn = e.target.closest('.qty-btn');
+					const id = parseInt(btn.dataset.id);
+					const delta = parseInt(btn.dataset.delta);
+					
+					debugLog('Quantity change clicked:', {id, delta});
+					changeQty(id, delta);
+				}
+			});
+			
+			// Event listener untuk modal
+			const cashModal = document.getElementById('cashModal');
+			if (cashModal) {
+				cashModal.addEventListener('show.bs.modal', function () {
+					debugLog('Modal opened');
+					// Copy data dari form utama ke modal
+					const tableNumber = document.getElementById('table-number').value;
+					const customerName = document.getElementById('customer-name').value;
+					
+					document.getElementById('modal-table').value = tableNumber;
+					document.getElementById('modal-customer').value = customerName;
+					
+					// Reset paid amount
+					document.getElementById('modal-paid').value = '';
+					document.getElementById('modal-change').innerText = 'Rp 0';
+				});
+			}
+			
+			// Test addToCart function
+			debugLog('addToCart function available:', typeof addToCart);
+			debugLog('renderCart function available:', typeof renderCart);
+		});
+		
+		// Make functions globally available
+		window.addToCart = addToCart;
+		window.changeQty = changeQty;
+		window.renderCart = renderCart;
+		window.confirmCash = confirmCash;
 
 		async function confirmCash(){
 			let total = 0; cart.forEach(i=> total += i.price*i.qty);
 			const paid = parseInt(document.getElementById('modal-paid').value||0);
-			if(paid < total){ return alert('Uang diterima kurang dari total.'); }
-			const table = document.getElementById('table-number').value || 0;
-			const customer = document.getElementById('customer-name').value || 'Tamu';
+			const table = parseInt(document.getElementById('modal-table').value||0);
+			const customer = document.getElementById('modal-customer').value || 'Tamu';
+			
+			if(cart.length === 0) {
+				alert('Keranjang kosong!');
+				return;
+			}
+			
+			if(paid < total){ 
+				alert('Uang diterima kurang dari total. Kekurangan: Rp ' + (total - paid).toLocaleString('id-ID')); 
+				return; 
+			}
+			
+			if(table <= 0) {
+				alert('Masukkan nomor meja yang valid!');
+				return;
+			}
+			
 			try{
-				const res = await fetch('create_cash_order.php', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({items:cart, table, customer, paid})});
+				const res = await fetch('create_cash_order.php', {
+					method:'POST', 
+					headers:{'Content-Type':'application/json'}, 
+					body: JSON.stringify({items:cart, table, customer, paid})
+				});
+				
 				const data = await res.json();
-				window.open('print_struk.php?order_id='+data.orderId, '_blank');
-				window.location.reload();
-			}catch(e){ console.error(e); alert('Terjadi kesalahan.'); }
+				
+				if(data.error) {
+					alert('Error: ' + data.error);
+					return;
+				}
+				
+				if(data.success && data.orderId) {
+					// Close modal
+					const modal = bootstrap.Modal.getInstance(document.getElementById('cashModal'));
+					modal.hide();
+					
+					// Show success message
+					alert('Pembayaran berhasil!\nTotal: Rp ' + total.toLocaleString('id-ID') + '\nUang Diterima: Rp ' + paid.toLocaleString('id-ID') + '\nKembalian: Rp ' + (paid - total).toLocaleString('id-ID'));
+					
+					// Open receipt
+					window.open('print_struk.php?order_id='+data.orderId, '_blank');
+					
+					// Clear cart and form
+					cart.length = 0;
+					document.getElementById('table-number').value = '';
+					document.getElementById('customer-name').value = '';
+					document.getElementById('modal-table').value = '';
+					document.getElementById('modal-customer').value = '';
+					document.getElementById('modal-paid').value = '';
+					renderCart();
+				} else {
+					alert('Terjadi kesalahan saat memproses pembayaran.');
+				}
+			}catch(e){ 
+				console.error(e); 
+				alert('Terjadi kesalahan: ' + e.message); 
+			}
 		}
 	</script>
 </body>

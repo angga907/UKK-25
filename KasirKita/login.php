@@ -347,11 +347,11 @@ $currentRole = $roleConfig[$role] ?? $roleConfig['kasir'];
             <div class="alert alert-danger">
                 <i class="fas fa-exclamation-triangle me-2"></i>
                 <?php echo $error; ?>
-            </div>
+                </div>
         <?php endif; ?>
 
-        <form method="post">
-            <input type="hidden" name="role" value="<?php echo $role; ?>">
+                    <form method="post">
+                        <input type="hidden" name="role" value="<?php echo $role; ?>">
             
             <div class="form-group">
                 <label class="form-label">
@@ -359,7 +359,7 @@ $currentRole = $roleConfig[$role] ?? $roleConfig['kasir'];
                 </label>
                 <input type="text" name="username" class="form-control" placeholder="Masukkan username" required>
                 <i class="fas fa-user input-icon"></i>
-            </div>
+                        </div>
 
             <div class="form-group">
                 <label class="form-label">
@@ -369,21 +369,21 @@ $currentRole = $roleConfig[$role] ?? $roleConfig['kasir'];
                 <button type="button" class="password-toggle" onclick="togglePassword()">
                     <i class="fas fa-eye" id="password-icon"></i>
                 </button>
-            </div>
+                        </div>
 
             <button type="submit" name="login" class="btn-login">
                 <i class="fas fa-sign-in-alt me-2"></i>
                 Login
             </button>
-        </form>
+                    </form>
 
         <div class="text-center">
             <a href="index.php" class="btn-back">
                 <i class="fas fa-arrow-left"></i>
                 Kembali ke Index
             </a>
-        </div>
-    </div>
+                </div>
+            </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
