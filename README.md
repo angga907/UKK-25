@@ -28,3 +28,31 @@ Aplikasi ini dikembangkan sebagai bagian dari proyek semester ganjil pada mata p
 
 ## 🎯 Kesimpulan
 Aplikasi ini diharapkan dapat menjadi solusi sederhana namun efektif dalam **digitalisasi proses kasir di restoran kecil hingga menengah**, sekaligus menjadi sarana pembelajaran dalam pengembangan aplikasi web berbasis framework.
+
+## 🖼️ Desain Antarmuka (UI)
+
+Berikut adalah tampilan antarmuka aplikasi kasir restoran yang telah dikembangkan:
+
+### 💰 Halaman Kasir
+Halaman kasir digunakan untuk mencatat pesanan pelanggan, menghitung total pembayaran, serta mencetak struk transaksi.
+![UI Kasir](./assets/ui-kasir.png)
+
+---
+
+## 🔄 Diagram / Flowchart Sistem
+
+Untuk memperjelas alur kerja aplikasi, berikut adalah flowchart sistem kasir restoran:
+
+### 📌 activity
+berikut adalah diagram activity dari aplikasi KasirKita
+![diagram activty] (./diagram/actvity.png)
+
+
+### 📌 Alur Transaksi
+Setelah pesanan dibuat, kasir menghitung total pembayaran → menerima uang → mencetak struk → menyimpan data ke database.
+![Flowchart Transaksi](./assets/flowchart-transaksi.png)
+
+### 📌 Alur Pengelolaan Admin
+Admin/manajer dapat mengelola data pengguna, menu, serta melihat laporan penjualan secara langsung.
+![Flowchart Admin](./assets/flowchart-admin.png)
+
